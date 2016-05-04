@@ -145,6 +145,23 @@
 <p><img src="https://static.oschina.net/uploads/img/201605/04151445_XE9U.png" alt="the test case of AnyMemo" title="the test case of AnyMemo"></p>
 
 <p>As <code>onDestroy()</code> and <code>run()</code> are both invoked by the framework asynchronously, RacerDroid will replay the generated test case by reordering the two events with the sequence that <code>onDestory()</code> runs before <code>onPostExecute()</code>. In this schedule, the exception will be thrown, making the app crash.</p>
+
+<h3>
+<a id="connectbot" class="anchor" href="#connectbot" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ConnectBot</h3>
+
+<p><a href="https://github.com/connectbot/connectbot">ConnectBot</a> is an SSH client for android. We test this application based on a patch of the source code committed by <a href="http://mir.cs.illinois.edu/%7Eyulin2/asynchronizer/">Asynchronizer</a>.</p>
+
+<p>The table shows potential data races in 4 components of ConnectBot. We use the one in the <code>HostListActivity</code> as an example. This data race is reported by the same work as the code is committed. The code snippet related to the bug is shown in the following figure.</p>
+
+<p><img src="https://static.oschina.net/uploads/img/201605/04170121_dBJP.png" alt="the code segment related to the data race" title="the code segment related to the data race"></p>
+
+<p>One can acknowledge that there is a potential data race between the <code>doInBackground</code> function which call <code>saveHost</code> on <code>hostdb</code> and the <code>onStop</code> function which set <code>hostdb</code> to null. Apparently, if the <code>onStop</code> call is before the <code>FindSaveHostTask</code>’s execution on <code>hostdb</code>, the data race is triggered and a <code>NullPointerException</code> would be thrown. This scenario can be produced when the <code>doInBackground</code> costs so many time that <code>onStop</code> is finish before “<code>hostdb.saveHost</code> is called. </p>
+
+<p>However, if we replay the trace directly, the execution of <code>hostdb.saveHost</code> and <code>onStop</code> function couldn’t be ensured to be in the same order at each replaying because the scheduling of the <code>FindSaveHostTask</code> (starts when the instruction <code>mDevice.pressKeyCode(KeyEvent.KEYCODE_ENTER);</code> is called) is not predictable. To guarantee the data race can always be triggered, we should exchange the execution order of the two functions.</p>
+
+<p>Through our instrumentation, we have inserted the semaphore at the <code>doInBackground</code> function. To exchange the order, we need to delay the <code>AsyncTask</code> until <code>onStop</code> is executed. The test case is shown in this figure.</p>
+
+<p><img src="https://static.oschina.net/uploads/img/201605/04171217_Ogtm.png" alt="the test case of connectbot" title="the test case of connectbot"></p>
       </section>
     </div>
 
