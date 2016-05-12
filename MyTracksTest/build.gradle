@@ -1,0 +1,67 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.1'
+    }
+}
+
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "com.google.android.maps.mytracks.appchecktest"
+        minSdkVersion 18
+        targetSdkVersion 23
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+repositories {
+    jcenter()
+    flatDir {
+        dirs 'libs' //this way we can find the .aar file in libs folder
+    }
+}
+
+dependencies {
+    // uiautomator
+    compile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
+    // mockwebserver
+    compile 'com.squareup.okhttp:mockwebserver:2.7.0'
+    // crema
+    compile(name:'crema', ext:'aar')
+    compile project(':espresso-core-debug')
+    compile project(':runner-debug')
+    compile project(':exposed-instrumentation-api-publish-debug')
+    compile project(':rules-debug')
+    compile project(':espresso-intents-debug')
+    compile project(':espresso-contrib-debug')
+    
+    compile files('libs/hamcrest-core-1.3.jar')
+    compile files('libs/hamcrest-integration-1.3.jar')
+    compile files('libs/hamcrest-library-1.3.jar')
+    compile files('libs/javawriter-2.1.1.jar')
+    compile files('libs/javax.inject-1.jar')
+    compile files('libs/javax.annotation-api-1.2.jar')   
+}
+configurations {
+    all*.exclude group: 'commons-logging', module: 'commons-logging'
+    all*.exclude group: 'com.android.support', module: 'support-annotations'
+}

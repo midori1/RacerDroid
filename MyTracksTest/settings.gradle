@@ -1,0 +1,1 @@
+include ':espresso-core-debug', ':runner-debug', ':rules-debug', ':exposed-instrumentation-api-publish-debug', ':espresso-contrib-debug', ':espresso-intents-debug'

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="org.openintents.filemanager.appchecktest">
+
+    <instrumentation android:name="android.support.test.runner.AndroidJUnitRunner" android:targetPackage="org.openintents.filemanager"/>
+
+    <application android:label="OIFileManagerTest">
+        <uses-library android:name="android.test.runner"/>
+    </application>
+
+</manifest>

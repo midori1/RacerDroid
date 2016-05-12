@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="com.google.android.maps.mytracks.appchecktest">
+
+    <instrumentation android:name="android.support.test.runner.AndroidJUnitRunner" android:targetPackage="com.google.android.maps.mytracks"/>
+
+    <application android:label="MyTracksTest">
+        <uses-library android:name="android.test.runner"/>
+    </application>
+
+</manifest>
