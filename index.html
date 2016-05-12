@@ -30,7 +30,7 @@
 
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
-      <section id="main_content" style="margin-left: 20%;margin-right: 20%;">
+      <section id="main_content" class="inner">
         <h1>
 <a id="racerdroid" class="anchor" href="#racerdroid" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>RacerDroid</h1>
 
@@ -129,14 +129,36 @@
 
 <p>The following sections describe the details of each case.</p>
 
+<p>** The code of the test case can be downloaded from the link at the top of the page or <a href="https://github.com/midori1/RacerDroid">https://github.com/midori1/RacerDroid</a>. **</p>
+
+<h3>
+<a id="mytracks" class="anchor" href="#mytracks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MyTracks</h3>
+
+<p><a href="https://play.google.com/store/apps/details?id=com.zihua.android.mytracks">MyTrack</a> is an app to record your track.
+The detail of the test of this app is presented on the paper. The example in the following figure shows the segment codes that are related to this race. </p>
+
+<p><img src="https://static.oschina.net/uploads/img/201605/12220903_owKA.png" alt="a code snippet of Mytracks releated to the data race" title="a code snippet of Mytracks releated to the data race"></p>
+
+<p>Fig.1 a code snippet of Mytracks releated to the data race</p>
+
+<p>In the activity MyTracks, when the user presses the button to start a track recording, startRecording() callback will be invoked, which starts and binds TrackRecordingService service. As soon as the service is ready, an event would be sent to the Looper of UI thread and callback onServiceConnected() will be executed when this event is dispatched, which calls startNewTrack() in TrackRecordingService through IPC mechanism. When user stops recording, stopRecording() callback will be invoked which stops and unbinds TrackRecordingService. This procedure would invoke onDestroy() asynchronously that set the “providerUtils” to null. In the ‘normal’ execution, onDestroy() will be invoked after startNewTrack(). However, there exists a situation that is contrary to the ‘normal’ execution. Due to TrackRecordingService is started and stopped asynchronously, startNewTrack() may still not be executed while onDestroy() has been performed, and an exception is thrown when startNewTrack() is invoked.</p>
+
+<p>As our test case generation tool is still developing, in order to confirm this potential data race, we first generate a test case manually that will trigger these two callbacks. Fig.2 shows the corresponding test case. This test case first press menu button to show the options menu on the screen and start a recording by press the record button. Then we call the options menu again and press the button to stop the record. At last, we save the record. When this test case is executed without controlling schedule, onServiceConnected() will be invoked before onDestroy() with high probability. Therefore, no exception will be thrown. During the test case replay, when onServiceConnected() is monitored to be scheduled, RacerDroid will suspend its dispatch by removing it from the queue. After onDestroy() callback of service TrackRecordingService  is scheduled, RacerDroid will then resume the execution of onServiceConnected() task. In this way, this concurrency bug is guaranteed to be produced.</p>
+
+<p><img src="https://static.oschina.net/uploads/img/201605/12223734_xkcA.png" alt="Test case of MyTrack" title="Test case of MyTrack"></p>
+
+<p>Fig.2 Test case of MyTrack</p>
+
 <h3>
 <a id="anymemo" class="anchor" href="#anymemo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>AnyMemo</h3>
 
-<p><a href="http://anymemo.org/">AnyMemo</a> is a free open-sourced spaced repetition flashcard learning software similar to SuperMemo for Android mobile phones. We use test it on version 10.2 whose code can be downloaded in <a href="https://github.com/helloworld1/AnyMemo">https://github.com/helloworld1/AnyMemo</a>.</p>
+<p><a href="http://anymemo.org/">AnyMemo</a> is a free open-sourced spaced repetition flashcard learning software similar to SuperMemo for Android mobile phones. We use test it on version 10.2 whose code can be downloaded in <a href="https://github.com/helloworld1/AnyMemo">https://github.com/helloworld1/AnyMemo</a>. This data race is reported in [].</p>
 
-<p>The example in the figure shows the segment codes that are related to this race. When <code>DownloaderAnyMemo</code>(the activity used to download the data bases) is shown to the user, <code>onCreate()</code> will invoke <code>initialRetrieve()</code> which create a background thread that downloads data. During the downloading, the user is notified about the progress using a <code>ProgressDialog</code> component. After the downloading task is finish, a message include a <code>Runnable</code> object will be posted to the message queue indicates the downloading is finish and the data will be displayed to the user. </p>
+<p>The following figure shows the segment codes that are related to this race. When <code>DownloaderAnyMemo</code>(the activity used to download the data bases) is shown to the user, <code>onCreate()</code> will invoke <code>initialRetrieve()</code> which create a background thread that downloads data. During the downloading, the user is notified about the progress using a <code>ProgressDialog</code> component. After the downloading task is finish, a message include a <code>Runnable</code> object will be posted to the message queue indicates the downloading is finish and the data will be displayed to the user. </p>
 
 <p><img src="https://static.oschina.net/uploads/img/201605/04145607_bXVh.png" alt="a code snippet of AnyMemo releated to the data race" title="A code segment of AnyMemo"></p>
+
+<p>Fig.3 a code snippet of AnyMemo releated to the data race</p>
 
 <p>The result of analyzer shows that the run method and the <code>onDestroy()</code> callback of the activity have races as when the background is finish after <code>onDestroy()</code> is executed. From the code we know that this bug is result from the execution of <code>mDialog.dismiss()</code> and the system will throw an exception: “java.lang.IllegalArgumentException: View not attached to window manager” because this method is trying to remove the ProgressDialog view which is no longer attached to the window manager.</p>
 
@@ -144,7 +166,16 @@
 
 <p><img src="https://static.oschina.net/uploads/img/201605/04151445_XE9U.png" alt="the test case of AnyMemo" title="the test case of AnyMemo"></p>
 
+<p>Fig.4 the test case of AnyMemo</p>
+
 <p>As <code>onDestroy()</code> and <code>run()</code> are both invoked by the framework asynchronously, RacerDroid will replay the generated test case by reordering the two events with the sequence that <code>onDestory()</code> runs before <code>onPostExecute()</code>. In this schedule, the exception will be thrown, making the app crash.</p>
+
+<h3>
+<a id="oi-file-manager" class="anchor" href="#oi-file-manager" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OI File Manager</h3>
+
+<p><a href="https://github.com/openintents/filemanager">OI File Manager</a> for Android is an open file manager that seamlessly cooperates with other applications. We use version 2.0.7 to perform our test.</p>
+
+<p>The bug of this app is almost same as the one in AnyMemo, they are both corresponding to the <code>ProgressDialog</code>. Therefore, we just present the test case of the app instead of describing the detail of this bug. </p>
 
 <h3>
 <a id="connectbot" class="anchor" href="#connectbot" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ConnectBot</h3>
@@ -155,6 +186,8 @@
 
 <p><img src="https://static.oschina.net/uploads/img/201605/04170121_dBJP.png" alt="the code segment related to the data race" title="the code segment related to the data race"></p>
 
+<p>Fig.5 the code segment related to the data race</p>
+
 <p>One can acknowledge that there is a potential data race between the <code>doInBackground</code> function which call <code>saveHost</code> on <code>hostdb</code> and the <code>onStop</code> function which set <code>hostdb</code> to null. Apparently, if the <code>onStop</code> call is before the <code>FindSaveHostTask</code>’s execution on <code>hostdb</code>, the data race is triggered and a <code>NullPointerException</code> would be thrown. This scenario can be produced when the <code>doInBackground</code> costs so many time that <code>onStop</code> is finish before “<code>hostdb.saveHost</code> is called. </p>
 
 <p>However, if we replay the trace directly, the execution of <code>hostdb.saveHost</code> and <code>onStop</code> function couldn’t be ensured to be in the same order at each replaying because the scheduling of the <code>FindSaveHostTask</code> (starts when the instruction <code>mDevice.pressKeyCode(KeyEvent.KEYCODE_ENTER);</code> is called) is not predictable. To guarantee the data race can always be triggered, we should exchange the execution order of the two functions.</p>
@@ -162,6 +195,8 @@
 <p>Through our instrumentation, we have inserted the semaphore at the <code>doInBackground</code> function. To exchange the order, we need to delay the <code>AsyncTask</code> until <code>onStop</code> is executed. The test case is shown in this figure.</p>
 
 <p><img src="https://static.oschina.net/uploads/img/201605/04171217_Ogtm.png" alt="the test case of connectbot" title="the test case of connectbot"></p>
+
+<p>Fig.6 the test case of connectbot</p>
       </section>
     </div>
 
