@@ -127,8 +127,11 @@
 </tbody>
 </table>
 
-<p>The following sections describe the details of each case.
-<strong>The code of the test case can be downloaded from the link at the top of the page or <a href="https://github.com/midori1/RacerDroid">https://github.com/midori1/RacerDroid</a>.</strong></p>
+<p>The following sections describe the details of each case.</p>
+
+<p><strong>The code of the test case can be downloaded from the link at the top of the page or <a href="https://github.com/midori1/RacerDroid">https://github.com/midori1/RacerDroid</a>.</strong></p>
+
+<p><strong>As the test case generation tool is still developing, in order to confirm the potential data races, we generate the test cases by manually trigger the callbacks and record the events using the recorder we developed.</strong></p>
 
 <h3>
 <a id="mytracks" class="anchor" href="#mytracks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MyTracks</h3>
@@ -196,6 +199,25 @@ The detail of the test of this app is presented on the paper. The example in the
 <p><img src="https://static.oschina.net/uploads/img/201605/04171217_Ogtm.png" alt="the test case of connectbot" title="the test case of connectbot"></p>
 
 <p>Fig.6 the test case of connectbot</p>
+
+<h3>
+<a id="todowidget" class="anchor" href="#todowidget" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ToDoWidget</h3>
+
+<p>ToDoList is an memo application that you can add widget contains a todo-list in the screen. We test the version of 1.7.1 using a data race reported in work[]. </p>
+
+<p>This bug is a false warning one that is not a real data race because the pair of events are always handled in the same thread and one is invoked by another one so that their execution are in a fixed order that we can’t reschedule them.</p>
+
+<p>The example in figure 7 shows a simplified version of the data race found by static analysis in “ToDoWidget” application. The class “ColorCircle” extends the “View” class to display a color selector used to select the font color. When the user touch the circle, the “onTouchEvent” function is called to handle the user action and it will invoke the “invalidate” method. Here is the description of this method in the API manual : “If the view is visible, onDraw(android.graphics.Canvas) will be called at some point in the future. This must be called from a UI thread. “</p>
+
+<p><img src="https://static.oschina.net/uploads/img/201605/13110713_eCv6.png" alt="todowidget code snippet2" title="the code related to the potential bug">
+<img src="https://static.oschina.net/uploads/img/201605/13110606_EbQC.png" alt="todowidget code snippet1" title="the code related to the potential bug">
+Fig 7. the simplified code related to the potential bug</p>
+
+<p>The static analyzer deem the execution of two callbacks “onDraw” and “onTouchEvent” can have potential data races on variable “mTrackingCenter”. It seems validate given the simplified pseudo code because the “onTouchEvent” changes the value of “mTrackingCenter” according to the position of the touch event while “onDraw” reads this variable and performs some operations based on “mTrackingCenter”. When “onTouchEvent” is executed after or concurrently with the execution of “onDraw”, the “read-write” data race is possibly triggered.</p>
+
+<p>After the exploring, a test case covers this two callbacks is generated. Then run this test case and schedule the execution of the callbacks to produce the data races. In this example, the scheduler should delay the execution of “onTouchEvent” until “onDraw” is called. We capture the messages that call this two callbacks when they are dispatched from the “queueInterrogator” and delay the message that calls  “onTouchEvent” to achieve this. However, when we catch the target message and delay it, we couldn’t find the message of “onDraw” in the queue no matter how mach time we wait. Under this situation, we could never produce this data race and the data race is considered to be false positive.</p>
+
+<p>To explain why this data race is false positive, the description of the method “invalidate” mentioned is the answer because the this method will call “onDraw” at some point in the future in the UI thread which is the same of the thread “onTouch. This ensures that the “onDraw” method is strictly executed after “onTouchEvent” and will never trigger the data race. </p>
       </section>
     </div>
 
