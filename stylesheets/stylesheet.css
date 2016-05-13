@@ -256,6 +256,16 @@ form {
   padding: 20px;
 }
 
+.aligncenter {
+ clear: both;
+ display: block;
+ margin:auto;
+}
+
+.pic-title {
+  text-align:center
+}
+
 /*******************************************************************************
 Full-Width Styles
 *******************************************************************************/
