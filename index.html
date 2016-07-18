@@ -139,7 +139,7 @@
 <p><a href="https://play.google.com/store/apps/details?id=com.zihua.android.mytracks">MyTrack</a> is an app to record your track.
 The detail of the test of this app is presented on the paper. The example in the following figure shows the segment codes that are related to this race. </p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/12220903_owKA.png" alt="a code snippet of Mytracks releated to the data race" title="a code snippet of Mytracks releated to the data race"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18105838_fn9Q.png" alt="a code snippet of Mytracks releated to the data race" title="a code snippet of Mytracks releated to the data race"></p>
 
 <p class="pic-title"><strong>Fig.1 a code snippet of Mytracks releated to the data race</strong></p>
 
@@ -147,7 +147,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>As our test case generation tool is still developing, in order to confirm this potential data race, we first generate a test case manually that will trigger these two callbacks. Fig.2 shows the corresponding test case. This test case first press menu button to show the options menu on the screen and start a recording by press the record button. Then we call the options menu again and press the button to stop the record. At last, we save the record. When this test case is executed without controlling schedule, <code>onServiceConnected()</code> will be invoked before <code>onDestroy()</code> with high probability. Therefore, no exception will be thrown. During the test case replay, when <code>onServiceConnected()</code> is monitored to be scheduled, RacerDroid will suspend its dispatch by removing it from the queue. After <code>onDestroy()</code> callback of service <code>TrackRecordingService</code>  is scheduled, RacerDroid will then resume the execution of <code>onServiceConnected()</code> task. In this way, this concurrency bug is guaranteed to be produced.</p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/12223734_xkcA.png" alt="Test case of MyTrack" title="Test case of MyTrack"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110656_b2wV.png" alt="Test case of MyTrack" title="Test case of MyTrack"></p>
 
 <p class="pic-title"><strong>Fig.2 Test case of MyTrack</strong></p>
 
@@ -160,7 +160,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>The following figure shows the segment codes that are related to this race. When <code>DownloaderAnyMemo</code>(the activity used to download the data bases) is shown to the user, <code>onCreate()</code> will invoke <code>initialRetrieve()</code> which create a background thread that downloads data. During the downloading, the user is notified about the progress using a <code>ProgressDialog</code> component. After the downloading task is finish, a message include a <code>Runnable</code> object will be posted to the message queue indicates the downloading is finish and the data will be displayed to the user. </p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/04145607_bXVh.png" alt="a code snippet of AnyMemo releated to the data race" title="A code segment of AnyMemo"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110309_ZILZ.png" alt="a code snippet of AnyMemo releated to the data race" title="A code segment of AnyMemo"></p>
 
 <p class="pic-title"><strong>Fig.3 a code snippet of AnyMemo releated to the data race</strong></p>
 
@@ -168,7 +168,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>As our test case generation tool is still developing, in order to confirm this potential data race, we first generate a test case manually that will trigger these two callbacks. The figure below shows the corresponding test case. This test case first turns to the download activity (<code>DownloaderAnyMemo</code>) and starts the download background thread immediately , waits until the download is end and rotate the screen (this will call <code>onDestroy()</code>) and at last check if it runs as expected. In the base schedule, the run method in the finish message will run before <code>onDestory()</code>.</p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/04151445_XE9U.png" alt="the test case of AnyMemo" title="the test case of AnyMemo"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110351_MOPl.png" alt="the test case of AnyMemo" title="the test case of AnyMemo"></p>
 
 <p class="pic-title"><strong>Fig.4 the test case of AnyMemo</strong></p>
 
@@ -190,7 +190,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>The table shows potential data races in 4 components of ConnectBot. We use the one in the <code>HostListActivity</code> as an example. This data race is reported by the same work as the code is committed. The code snippet related to the bug is shown in the following figure.</p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/04170121_dBJP.png" alt="the code segment related to the data race" title="the code segment related to the data race"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110428_l4Nc.png" alt="the code segment related to the data race" title="the code segment related to the data race"></p>
 
 <p class="pic-title"><strong>Fig.5 the code segment related to the data race</strong></p>
 
@@ -200,7 +200,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>Through our instrumentation, we have inserted the semaphore at the <code>doInBackground</code> function. To exchange the order, we need to delay the <code>AsyncTask</code> until <code>onStop</code> is executed. The test case is shown in this figure.</p>
 
-<p><img class="aligncenter" class="aligncenter" src="https://static.oschina.net/uploads/img/201605/04171217_Ogtm.png" alt="the test case of connectbot" title="the test case of connectbot"></p>
+<p><img class="aligncenter" class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110507_UaJa.png" alt="the test case of connectbot" title="the test case of connectbot"></p>
 
 <p class="pic-title"><strong>Fig.6 the test case of connectbot</strong></p>
 
@@ -215,8 +215,8 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>The example in figure 7 shows a simplified version of the data race found by static analysis in <code>ToDoWidget</code> application. The class <code>ColorCircle</code> extends the <code>View</code> class to display a color selector used to select the font color. When the user touch the circle, the <code>onTouchEvent</code> function is called to handle the user action and it will invoke the <code>invalidate</code> method. Here is the description of this method in the API manual : “If the view is visible, onDraw(android.graphics.Canvas) will be called at some point in the future. This must be called from a UI thread. “</p>
 
-<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/13110713_eCv6.png" alt="todowidget code snippet2" title="the code related to the potential bug">
-<img class="aligncenter" src="https://static.oschina.net/uploads/img/201605/13110606_EbQC.png" alt="todowidget code snippet1" title="the code related to the potential bug"></p>
+<p><img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110543_sWtP.png" alt="todowidget code snippet2" title="the code related to the potential bug">
+<img class="aligncenter" src="https://static.oschina.net/uploads/img/201607/18110613_JeaL.png" alt="todowidget code snippet1" title="the code related to the potential bug"></p>
 
 <p class="pic-title"><strong>Fig 7. the simplified code related to the potential bug</strong></p>
 
