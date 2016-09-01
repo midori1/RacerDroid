@@ -168,6 +168,7 @@ The detail of the test of this app is presented on the paper. The example in the
 
 <p>As our test case generation tool is still developing, in order to confirm this potential data race, we first generate a test case manually that will trigger these two callbacks. The figure below shows the corresponding test case. This test case first turns to the download activity (<code>DownloaderAnyMemo</code>) and starts the download background thread immediately , waits until the download is end and rotate the screen (this will call <code>onDestroy()</code>) and at last check if it runs as expected. In the base schedule, the run method in the finish message will run before <code>onDestory()</code>.</p>
 
+
 <p><img class="aligncenter" src="http://7xo94v.com1.z0.glb.clouddn.com/anymemo-testcase.png" alt="the test case of AnyMemo" title="the test case of AnyMemo"></p>
 
 <p class="pic-title"><strong>Fig.4 the test case of AnyMemo</strong></p>
